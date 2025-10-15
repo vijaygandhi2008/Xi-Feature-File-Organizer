@@ -58,11 +58,16 @@ app.post('/api/upload', upload.array('files', 50), async (req, res) => {
       const lastPart = parts[parts.length - 1];
       const folderName = lastPart.split('.')[0];
       
-      // Create directory if it doesn't exist
-      try {
+      // Check if directory exists before creating
+      const rootFiles = await client.list();
+      const folderExists = rootFiles.some(f => f.name === folderName && f.type === 2);
+      
+      if (!folderExists) {
+        // Create directory only if it doesn't exist
         await client.ensureDir(folderName);
-      } catch (err) {
-        console.log(`Directory ${folderName} might already exist`);
+        console.log(`Created new folder: ${folderName}`);
+      } else {
+        console.log(`Using existing folder: ${folderName}`);
       }
       
       // Upload to folder
