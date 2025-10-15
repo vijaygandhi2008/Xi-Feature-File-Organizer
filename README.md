@@ -37,7 +37,8 @@ npm install
 ```json
 {
   "smb": {
-    "share": "//server-ip/share-name",
+    "share": "//192.168.8.4/Ocean",
+    "path": "/Inbox/QubeXP/Xi-FeatureFiles",
     "domain": "WORKGROUP",
     "user": "your-username",
     "password": "your-password"
@@ -47,6 +48,10 @@ npm install
   }
 }
 ```
+
+**Note**: Split your SMB path into:
+- `share`: The root SMB share (e.g., `//192.168.8.4/Ocean`)
+- `path`: The subdirectory within the share (e.g., `/Inbox/QubeXP/Xi-FeatureFiles`)
 
 ## Usage
 
@@ -74,11 +79,18 @@ http://localhost:3000
 
 The `config.json` file contains the following settings:
 
-- `smb.share`: SMB share path (e.g., `//192.168.1.100/shared`)
+- `smb.share`: SMB root share path (e.g., `//192.168.8.4/Ocean`)
+- `smb.path`: Subdirectory within the share (e.g., `/Inbox/QubeXP/Xi-FeatureFiles`)
 - `smb.domain`: SMB domain (default: `WORKGROUP`)
 - `smb.user`: SMB username
 - `smb.password`: SMB password
 - `server.port`: Web server port (default: 3000)
+
+**Important**: Split your full SMB path into `share` and `path` components:
+- Full path: `//192.168.8.4/Ocean/Inbox/QubeXP/Xi-FeatureFiles`
+- Split into: 
+  - `share`: `//192.168.8.4/Ocean`
+  - `path`: `/Inbox/QubeXP/Xi-FeatureFiles`
 
 ## API Endpoints
 

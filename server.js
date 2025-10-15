@@ -27,6 +27,18 @@ function createSMBClient() {
   });
 }
 
+// Helper to get full remote path
+function getRemotePath(relativePath) {
+  const basePath = config.smb.path || '';
+  if (!relativePath || relativePath === '/' || relativePath === '') {
+    return basePath;
+  }
+  // Ensure paths use backslashes for Windows
+  const cleanBasePath = basePath.replace(/\//g, '\\');
+  const cleanRelativePath = relativePath.replace(/\//g, '\\');
+  return cleanBasePath + (cleanRelativePath.startsWith('\\') ? '' : '\\') + cleanRelativePath;
+}
+
 // Upload file to SMB
 app.post('/api/upload', upload.array('files', 50), async (req, res) => {
   const smbClient = createSMBClient();
@@ -48,23 +60,23 @@ app.post('/api/upload', upload.array('files', 50), async (req, res) => {
       const folderName = lastPart.split('.')[0];
       
       // Check if directory exists before creating
-      const remotePath = `\\${folderName}`;
+      const remoteFolderPath = getRemotePath(folderName);
       
       try {
         await new Promise((resolve, reject) => {
-          smbClient.readdir(remotePath, (err, files) => {
+          smbClient.readdir(remoteFolderPath, (err, files) => {
             if (err) {
               // Directory doesn't exist, create it
-              smbClient.mkdir(remotePath, (mkdirErr) => {
+              smbClient.mkdir(remoteFolderPath, (mkdirErr) => {
                 if (mkdirErr && mkdirErr.code !== 'STATUS_OBJECT_NAME_COLLISION') {
                   reject(mkdirErr);
                 } else {
-                  console.log(`Created new folder: ${folderName}`);
+                  console.log(`Created new folder: ${remoteFolderPath}`);
                   resolve();
                 }
               });
             } else {
-              console.log(`Using existing folder: ${folderName}`);
+              console.log(`Using existing folder: ${remoteFolderPath}`);
               resolve();
             }
           });
@@ -74,7 +86,7 @@ app.post('/api/upload', upload.array('files', 50), async (req, res) => {
       }
       
       // Upload to folder
-      const remoteFilePath = `\\${folderName}\\${filename}`;
+      const remoteFilePath = getRemotePath(`${folderName}\\${filename}`);
       const fileContent = await fs.readFile(localFilePath);
       
       await new Promise((resolve, reject) => {
@@ -113,7 +125,7 @@ app.get('/api/files', async (req, res) => {
   
   try {
     const folder = req.query.folder || '';
-    const remotePath = folder ? `\\${folder}` : '\\';
+    const remotePath = getRemotePath(folder);
     
     const files = await new Promise((resolve, reject) => {
       smbClient.readdir(remotePath, (err, files) => {
@@ -147,8 +159,10 @@ app.get('/api/directories', async (req, res) => {
   const smbClient = createSMBClient();
   
   try {
+    const remotePath = getRemotePath('');
+    
     const files = await new Promise((resolve, reject) => {
-      smbClient.readdir('\\', (err, files) => {
+      smbClient.readdir(remotePath, (err, files) => {
         if (err) reject(err);
         else resolve(files);
       });
@@ -176,7 +190,7 @@ app.get('/api/download/:filename', async (req, res) => {
   const smbClient = createSMBClient();
   const filename = req.params.filename;
   const folder = req.query.folder || '';
-  const remotePath = folder ? `\\${folder}\\${filename}` : `\\${filename}`;
+  const remotePath = getRemotePath(folder ? `${folder}\\${filename}` : filename);
   const localFilePath = path.join(uploadsDir, `download_${Date.now()}_${filename}`);
 
   try {
@@ -230,7 +244,7 @@ app.post('/api/download-multiple', async (req, res) => {
   try {
     // Download all files
     for (const filename of files) {
-      const remotePath = folder ? `\\${folder}\\${filename}` : `\\${filename}`;
+      const remotePath = getRemotePath(folder ? `${folder}\\${filename}` : filename);
       const localFilePath = path.join(uploadsDir, `temp_${Date.now()}_${filename}`);
       
       const fileContent = await new Promise((resolve, reject) => {
@@ -293,7 +307,7 @@ app.delete('/api/delete/:filename', async (req, res) => {
   const smbClient = createSMBClient();
   const filename = req.params.filename;
   const folder = req.query.folder || '';
-  const remotePath = folder ? `\\${folder}\\${filename}` : `\\${filename}`;
+  const remotePath = getRemotePath(folder ? `${folder}\\${filename}` : filename);
   
   try {
     await new Promise((resolve, reject) => {

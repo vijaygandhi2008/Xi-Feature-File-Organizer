@@ -1,6 +1,7 @@
 {
   "smb": {
-    "share": "//server-ip/share-name",
+    "share": "//192.168.8.4/Ocean",
+    "path": "/Inbox/QubeXP/Xi-FeatureFiles",
     "domain": "WORKGROUP",
     "user": "username",
     "password": "password"
