@@ -92,6 +92,28 @@ The `config.json` file contains the following settings:
   - `share`: `//192.168.8.4/Ocean`
   - `path`: `/Inbox/QubeXP/Xi-FeatureFiles`
 
+## Testing
+
+### Automated Unit Tests
+
+Run the automated test suite to validate all functionality:
+
+```bash
+# Run all tests with coverage
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+**Test Coverage:**
+- File upload with folder organization
+- Folder navigation (dropdown and search)
+- File selection and download
+- Complete workflow integration
+
+See [TESTING.md](TESTING.md) for detailed test documentation.
+
 ## API Endpoints
 
 The application exposes the following REST API endpoints:

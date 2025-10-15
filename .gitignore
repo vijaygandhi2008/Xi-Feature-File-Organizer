@@ -3,3 +3,5 @@ uploads/
 config.json
 *.log
 .DS_Store
+coverage/
+test-files/
