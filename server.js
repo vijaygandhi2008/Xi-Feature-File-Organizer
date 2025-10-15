@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const SMB2 = require('@marsaud/smb2');
+const SMB2 = require('smb2');
 const fs = require('fs').promises;
 const path = require('path');
 const config = require('./config.json');
@@ -23,8 +23,7 @@ function createSMBClient() {
     share: config.smb.share,
     domain: config.smb.domain || 'WORKGROUP',
     username: config.smb.user,
-    password: config.smb.password,
-    autoCloseTimeout: 0
+    password: config.smb.password
   });
 }
 
