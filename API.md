@@ -1,7 +1,7 @@
 # API Documentation
 
 ## Overview
-This document describes the REST API endpoints provided by the Web FTP Application.
+This document describes the REST API endpoints provided by the Web SMB/Samba Application.
 
 ## Base URL
 ```
@@ -11,7 +11,7 @@ http://localhost:3000
 ## Endpoints
 
 ### 1. Upload Files (Multiple)
-Upload one or more files to the FTP server. Files are automatically organized into folders based on the filename pattern.
+Upload one or more files to the SMB server. Files are automatically organized into folders based on the filename pattern.
 
 **Endpoint:** `POST /api/upload`
 

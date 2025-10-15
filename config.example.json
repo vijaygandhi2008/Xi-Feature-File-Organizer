@@ -1,10 +1,9 @@
 {
-  "ftp": {
-    "host": "ftp.example.com",
-    "port": 21,
+  "smb": {
+    "share": "//server-ip/share-name",
+    "domain": "WORKGROUP",
     "user": "username",
-    "password": "password",
-    "secure": false
+    "password": "password"
   },
   "server": {
     "port": 3000

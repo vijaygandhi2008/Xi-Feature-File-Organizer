@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@marsaud/smb2": "^0.18.0",
     "archiver": "^7.0.1",
     "basic-ftp": "^5.0.5",
     "express": "^5.1.0",

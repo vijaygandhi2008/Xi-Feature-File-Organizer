@@ -1,22 +1,22 @@
 # web-ftp-app
 
-A web application to upload and download files to/from a remote FTP directory.
+A web application to upload and download files to/from a remote SMB/Samba share.
 
 ## Features
 
-- 📤 **Upload Multiple Files**: Upload single or multiple files from your local machine to an FTP server
+- 📤 **Upload Multiple Files**: Upload single or multiple files from your local machine to an SMB/Samba server
 - 📁 **Auto Folder Organization**: Files are automatically organized into folders based on filename pattern
 - 🔍 **Folder Browser**: Browse files by folder using dropdown or search functionality
 - 📥 **Bulk Download**: Select multiple files with checkboxes and download as a ZIP archive
-- 📂 **Directory Listing**: View all folders and files in the FTP directory with file details (size, modified date)
-- 🗑️ **Delete Files**: Remove files from the FTP server
+- 📂 **Directory Listing**: View all folders and files in the SMB directory with file details (size, modified date)
+- 🗑️ **Delete Files**: Remove files from the SMB server
 - 🔄 **Refresh**: Update the file list to see the latest changes
 - 💅 **Modern UI**: Clean and responsive user interface
 
 ## Prerequisites
 
 - Node.js (v14 or higher)
-- Access to an FTP server
+- Access to an SMB/Samba server
 
 ## Installation
 
@@ -31,17 +31,16 @@ cd web-ftp-app
 npm install
 ```
 
-3. Configure FTP settings:
+3. Configure SMB settings:
    - Copy `config.example.json` to `config.json`
-   - Update the FTP credentials in `config.json`:
+   - Update the SMB credentials in `config.json`:
 ```json
 {
-  "ftp": {
-    "host": "your-ftp-server.com",
-    "port": 21,
+  "smb": {
+    "share": "//server-ip/share-name",
+    "domain": "WORKGROUP",
     "user": "your-username",
-    "password": "your-password",
-    "secure": false
+    "password": "your-password"
   },
   "server": {
     "port": 3000
@@ -62,7 +61,7 @@ http://localhost:3000
 ```
 
 3. Use the web interface to:
-   - **Upload files**: Select one or multiple files, click "Upload to FTP"
+   - **Upload files**: Select one or multiple files, click "Upload to SMB"
      - Files are automatically organized into folders based on the filename pattern: `filename.split('-')[-1].split('.')[0]`
      - Example: `report-data-sales.pdf` will be stored in folder `sales`
    - **Browse folders**: Use the dropdown to select a folder or search for folders by name
@@ -75,30 +74,29 @@ http://localhost:3000
 
 The `config.json` file contains the following settings:
 
-- `ftp.host`: FTP server hostname or IP address
-- `ftp.port`: FTP server port (default: 21)
-- `ftp.user`: FTP username
-- `ftp.password`: FTP password
-- `ftp.secure`: Use FTPS (secure FTP) - set to `true` for secure connections
+- `smb.share`: SMB share path (e.g., `//192.168.1.100/shared`)
+- `smb.domain`: SMB domain (default: `WORKGROUP`)
+- `smb.user`: SMB username
+- `smb.password`: SMB password
 - `server.port`: Web server port (default: 3000)
 
 ## API Endpoints
 
 The application exposes the following REST API endpoints:
 
-- `POST /api/upload` - Upload multiple files to FTP server (organized into folders automatically)
-- `GET /api/files?folder=<name>` - List all files in FTP directory or specific folder
-- `GET /api/directories` - List all directories in FTP root
-- `GET /api/download/:filename?folder=<name>` - Download a file from FTP server
+- `POST /api/upload` - Upload multiple files to SMB server (organized into folders automatically)
+- `GET /api/files?folder=<name>` - List all files in SMB directory or specific folder
+- `GET /api/directories` - List all directories in SMB root
+- `GET /api/download/:filename?folder=<name>` - Download a file from SMB server
 - `POST /api/download-multiple` - Download multiple files as ZIP archive
-- `DELETE /api/delete/:filename` - Delete a file from FTP server
+- `DELETE /api/delete/:filename` - Delete a file from SMB server
 
 See [API.md](API.md) for detailed documentation.
 
 ## Technologies Used
 
 - **Backend**: Node.js, Express.js
-- **FTP Client**: basic-ftp
+- **SMB Client**: @marsaud/smb2
 - **File Upload**: Multer
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
 
@@ -107,7 +105,6 @@ See [API.md](API.md) for detailed documentation.
 ⚠️ **Important**: 
 - Never commit `config.json` with real credentials to version control
 - Use environment variables for production deployments
-- Consider using FTPS (secure FTP) by setting `secure: true` in config
 - Implement authentication for the web interface in production
 
 ## License
