@@ -1,0 +1,18 @@
+{
+  "name": "web-ftp-app",
+  "version": "1.0.0",
+  "description": "Web application to upload and download files to/from remote FTP directory",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["ftp", "upload", "download", "web-app"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "basic-ftp": "^5.0.5",
+    "express": "^5.1.0",
+    "multer": "^2.0.2"
+  }
+}

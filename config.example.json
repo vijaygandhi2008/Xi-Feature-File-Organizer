@@ -1,0 +1,12 @@
+{
+  "ftp": {
+    "host": "ftp.example.com",
+    "port": 21,
+    "user": "username",
+    "password": "password",
+    "secure": false
+  },
+  "server": {
+    "port": 3000
+  }
+}

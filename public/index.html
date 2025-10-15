@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web FTP Application</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌐 Web FTP Application</h1>
+            <p>Upload and download files to/from FTP server</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Upload Section -->
+            <section class="upload-section">
+                <h2>📤 Upload File</h2>
+                <div class="upload-form">
+                    <input type="file" id="fileInput" accept="*/*">
+                    <button onclick="uploadFile()" class="btn btn-primary">Upload to FTP</button>
+                </div>
+                <div id="uploadStatus" class="status-message"></div>
+            </section>
+
+            <!-- Files List Section -->
+            <section class="files-section">
+                <h2>📁 FTP Directory Files</h2>
+                <button onclick="refreshFileList()" class="btn btn-secondary">🔄 Refresh</button>
+                <div id="filesList" class="files-list">
+                    <p class="loading">Click refresh to load files...</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
