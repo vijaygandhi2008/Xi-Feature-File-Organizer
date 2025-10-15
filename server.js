@@ -66,13 +66,16 @@ app.post('/api/upload', upload.array('files', 50), async (req, res) => {
         // Create directory only if it doesn't exist
         await client.ensureDir(folderName);
         console.log(`Created new folder: ${folderName}`);
+        // Go back to root after creating directory
+        await client.cd('/');
       } else {
         console.log(`Using existing folder: ${folderName}`);
       }
       
-      // Upload to folder
-      const remoteFilePath = `${folderName}/${filename}`;
-      await client.uploadFrom(localFilePath, remoteFilePath);
+      // Upload to folder - change to folder first, then upload
+      await client.cd(folderName);
+      await client.uploadFrom(localFilePath, filename);
+      await client.cd('/'); // Return to root
       
       // Clean up local file after upload
       await fs.unlink(localFilePath);
