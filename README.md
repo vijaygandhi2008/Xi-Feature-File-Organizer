@@ -4,9 +4,11 @@ A web application to upload and download files to/from a remote FTP directory.
 
 ## Features
 
-- 📤 **Upload Files**: Upload files from your local machine to an FTP server
-- 📥 **Download Files**: Download files from the FTP server to your local machine
-- 📁 **Browse Files**: View all files in the FTP directory with file details (size, modified date)
+- 📤 **Upload Multiple Files**: Upload single or multiple files from your local machine to an FTP server
+- 📁 **Auto Folder Organization**: Files are automatically organized into folders based on filename pattern
+- 🔍 **Folder Browser**: Browse files by folder using dropdown or search functionality
+- 📥 **Bulk Download**: Select multiple files with checkboxes and download as a ZIP archive
+- 📂 **Directory Listing**: View all folders and files in the FTP directory with file details (size, modified date)
 - 🗑️ **Delete Files**: Remove files from the FTP server
 - 🔄 **Refresh**: Update the file list to see the latest changes
 - 💅 **Modern UI**: Clean and responsive user interface
@@ -60,10 +62,14 @@ http://localhost:3000
 ```
 
 3. Use the web interface to:
-   - Upload files by clicking "Choose File" and then "Upload to FTP"
-   - View files by clicking the "Refresh" button
-   - Download files by clicking the "Download" button next to any file
-   - Delete files by clicking the "Delete" button (with confirmation)
+   - **Upload files**: Select one or multiple files, click "Upload to FTP"
+     - Files are automatically organized into folders based on the filename pattern: `filename.split('-')[-1].split('.')[0]`
+     - Example: `report-data-sales.pdf` will be stored in folder `sales`
+   - **Browse folders**: Use the dropdown to select a folder or search for folders by name
+   - **View files**: Click "Refresh" to load files from the selected folder
+   - **Download single file**: Click the "Download" button next to any file
+   - **Download multiple files**: Select files using checkboxes and click "Download Selected" to get a ZIP archive
+   - **Delete files**: Click the "Delete" button (with confirmation)
 
 ## Configuration
 
@@ -80,10 +86,14 @@ The `config.json` file contains the following settings:
 
 The application exposes the following REST API endpoints:
 
-- `POST /api/upload` - Upload a file to FTP server
-- `GET /api/files` - List all files in FTP directory
-- `GET /api/download/:filename` - Download a file from FTP server
+- `POST /api/upload` - Upload multiple files to FTP server (organized into folders automatically)
+- `GET /api/files?folder=<name>` - List all files in FTP directory or specific folder
+- `GET /api/directories` - List all directories in FTP root
+- `GET /api/download/:filename?folder=<name>` - Download a file from FTP server
+- `POST /api/download-multiple` - Download multiple files as ZIP archive
 - `DELETE /api/delete/:filename` - Delete a file from FTP server
+
+See [API.md](API.md) for detailed documentation.
 
 ## Technologies Used
 

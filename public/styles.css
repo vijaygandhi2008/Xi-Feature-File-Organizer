@@ -224,3 +224,81 @@ h2 {
 .files-list::-webkit-scrollbar-thumb:hover {
     background: #a0aec0;
 }
+
+/* Folder controls */
+.folder-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+    align-items: flex-end;
+}
+
+.folder-dropdown,
+.folder-search {
+    flex: 1;
+    min-width: 200px;
+}
+
+.folder-dropdown label,
+.folder-search label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #555;
+    font-weight: 500;
+}
+
+.folder-dropdown select,
+.folder-search input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e0;
+    border-radius: 5px;
+    font-size: 14px;
+    background: white;
+}
+
+.folder-dropdown select:focus,
+.folder-search input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.current-folder {
+    padding: 10px;
+    background: #f7fafc;
+    border-left: 4px solid #667eea;
+    margin-bottom: 15px;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.current-folder span {
+    color: #667eea;
+    font-weight: 600;
+}
+
+/* Bulk actions */
+.bulk-actions {
+    margin-bottom: 15px;
+}
+
+/* Checkbox styling */
+.file-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    margin-right: 15px;
+    accent-color: #667eea;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+}
+
+.file-item .file-info {
+    flex: 1;
+}

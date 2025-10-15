@@ -1,16 +1,21 @@
-// Upload file to FTP
-async function uploadFile() {
+let currentFolder = '/';
+let allFolders = [];
+let selectedFiles = new Set();
+
+// Upload files to FTP
+async function uploadFiles() {
     const fileInput = document.getElementById('fileInput');
     const statusDiv = document.getElementById('uploadStatus');
     
     if (!fileInput.files.length) {
-        showStatus('Please select a file to upload', 'error');
+        showStatus('Please select at least one file to upload', 'error');
         return;
     }
 
-    const file = fileInput.files[0];
     const formData = new FormData();
-    formData.append('file', file);
+    for (const file of fileInput.files) {
+        formData.append('files', file);
+    }
 
     try {
         statusDiv.innerHTML = '<p>Uploading...</p>';
@@ -23,16 +28,79 @@ async function uploadFile() {
         const data = await response.json();
 
         if (response.ok) {
-            showStatus(`✓ File "${data.filename}" uploaded successfully!`, 'success');
+            showStatus(`✓ ${data.files.length} file(s) uploaded successfully!`, 'success');
             fileInput.value = '';
-            // Refresh file list after successful upload
-            setTimeout(refreshFileList, 500);
+            // Refresh folder list and file list after successful upload
+            setTimeout(() => {
+                loadFolders();
+                refreshFileList();
+            }, 500);
         } else {
             showStatus(`✗ Upload failed: ${data.error}`, 'error');
         }
     } catch (error) {
         showStatus(`✗ Upload failed: ${error.message}`, 'error');
     }
+}
+
+// Load folders for dropdown
+async function loadFolders() {
+    try {
+        const response = await fetch('/api/directories');
+        const data = await response.json();
+
+        if (response.ok) {
+            allFolders = data.directories || [];
+            updateFolderDropdown(allFolders);
+        }
+    } catch (error) {
+        console.error('Failed to load folders:', error);
+    }
+}
+
+// Update folder dropdown
+function updateFolderDropdown(folders) {
+    const select = document.getElementById('folderSelect');
+    const currentValue = select.value;
+    
+    select.innerHTML = '<option value="/">Root Directory</option>';
+    
+    folders.forEach(folder => {
+        const option = document.createElement('option');
+        option.value = folder.name;
+        option.textContent = folder.name;
+        select.appendChild(option);
+    });
+    
+    // Restore previous selection if it exists
+    if (currentValue && folders.find(f => f.name === currentValue)) {
+        select.value = currentValue;
+    }
+}
+
+// Filter folders based on search
+function filterFolders() {
+    const searchInput = document.getElementById('folderSearch');
+    const searchTerm = searchInput.value.toLowerCase();
+    
+    if (searchTerm === '') {
+        updateFolderDropdown(allFolders);
+    } else {
+        const filtered = allFolders.filter(folder => 
+            folder.name.toLowerCase().includes(searchTerm)
+        );
+        updateFolderDropdown(filtered);
+    }
+}
+
+// Handle folder change
+function onFolderChange() {
+    const select = document.getElementById('folderSelect');
+    currentFolder = select.value;
+    document.getElementById('currentFolderName').textContent = currentFolder;
+    selectedFiles.clear();
+    updateSelectedCount();
+    refreshFileList();
 }
 
 // Refresh file list
@@ -42,21 +110,25 @@ async function refreshFileList() {
     try {
         filesListDiv.innerHTML = '<p class="loading">Loading files...</p>';
         
-        const response = await fetch('/api/files');
+        const url = currentFolder === '/' 
+            ? '/api/files' 
+            : `/api/files?folder=${encodeURIComponent(currentFolder)}`;
+        
+        const response = await fetch(url);
         const data = await response.json();
 
         if (response.ok && data.files) {
-            if (data.files.length === 0) {
-                filesListDiv.innerHTML = '<p class="empty">No files found in FTP directory</p>';
+            const files = data.files.filter(f => f.type === 'file');
+            
+            if (files.length === 0) {
+                filesListDiv.innerHTML = '<p class="empty">No files found in this folder</p>';
                 return;
             }
 
             filesListDiv.innerHTML = '';
-            data.files.forEach(file => {
-                if (file.type === 'file') {
-                    const fileItem = createFileItem(file);
-                    filesListDiv.appendChild(fileItem);
-                }
+            files.forEach(file => {
+                const fileItem = createFileItem(file);
+                filesListDiv.appendChild(fileItem);
             });
         } else {
             filesListDiv.innerHTML = `<p class="error">Failed to load files: ${data.error || 'Unknown error'}</p>`;
@@ -66,10 +138,22 @@ async function refreshFileList() {
     }
 }
 
-// Create file item element
+// Create file item element with checkbox
 function createFileItem(file) {
     const div = document.createElement('div');
     div.className = 'file-item';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'file-checkbox';
+    checkbox.onchange = (e) => {
+        if (e.target.checked) {
+            selectedFiles.add(file.name);
+        } else {
+            selectedFiles.delete(file.name);
+        }
+        updateSelectedCount();
+    };
 
     const fileInfo = document.createElement('div');
     fileInfo.className = 'file-info';
@@ -101,16 +185,72 @@ function createFileItem(file) {
     fileActions.appendChild(downloadBtn);
     fileActions.appendChild(deleteBtn);
 
+    div.appendChild(checkbox);
     div.appendChild(fileInfo);
     div.appendChild(fileActions);
 
     return div;
 }
 
+// Update selected count
+function updateSelectedCount() {
+    const count = selectedFiles.size;
+    document.getElementById('selectedCount').textContent = count;
+    document.getElementById('downloadSelectedBtn').disabled = count === 0;
+}
+
+// Download selected files
+async function downloadSelected() {
+    if (selectedFiles.size === 0) {
+        showStatus('Please select at least one file', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/download-multiple', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                files: Array.from(selectedFiles),
+                folder: currentFolder === '/' ? '' : currentFolder
+            })
+        });
+
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'files.zip';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            showStatus(`✓ ${selectedFiles.size} file(s) downloaded successfully!`, 'success');
+            selectedFiles.clear();
+            updateSelectedCount();
+            
+            // Uncheck all checkboxes
+            document.querySelectorAll('.file-checkbox').forEach(cb => cb.checked = false);
+        } else {
+            const data = await response.json();
+            showStatus(`✗ Download failed: ${data.error}`, 'error');
+        }
+    } catch (error) {
+        showStatus(`✗ Download failed: ${error.message}`, 'error');
+    }
+}
+
 // Download file from FTP
 async function downloadFile(filename) {
     try {
-        window.location.href = `/api/download/${encodeURIComponent(filename)}`;
+        const url = currentFolder === '/' 
+            ? `/api/download/${encodeURIComponent(filename)}`
+            : `/api/download/${encodeURIComponent(filename)}?folder=${encodeURIComponent(currentFolder)}`;
+        window.location.href = url;
     } catch (error) {
         showStatus(`✗ Download failed: ${error.message}`, 'error');
     }
@@ -170,5 +310,6 @@ function formatDate(dateString) {
 
 // Load files on page load
 window.addEventListener('DOMContentLoaded', () => {
+    loadFolders();
     refreshFileList();
 });
