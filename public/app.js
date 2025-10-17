@@ -1,4 +1,4 @@
-let currentFolder = '/';
+let currentFolder = '';
 let allFolders = [];
 let selectedFiles = new Set();
 
@@ -63,7 +63,7 @@ function updateFolderDropdown(folders) {
     const select = document.getElementById('folderSelect');
     const currentValue = select.value;
     
-    select.innerHTML = '<option value="/">Root Directory</option>';
+    select.innerHTML = '<option value="">Select folder from dropdown</option>';
     
     folders.forEach(folder => {
         const option = document.createElement('option');
@@ -97,7 +97,8 @@ function filterFolders() {
 function onFolderChange() {
     const select = document.getElementById('folderSelect');
     currentFolder = select.value;
-    document.getElementById('currentFolderName').textContent = currentFolder;
+    const displayText = currentFolder === '' ? 'Select folder from dropdown' : currentFolder;
+    document.getElementById('currentFolderName').textContent = displayText;
     selectedFiles.clear();
     updateSelectedCount();
     refreshFileList();
@@ -107,12 +108,16 @@ function onFolderChange() {
 async function refreshFileList() {
     const filesListDiv = document.getElementById('filesList');
     
+    // Don't load files if no folder is selected
+    if (currentFolder === '') {
+        filesListDiv.innerHTML = '<p class="empty">Please select a folder from the dropdown to view files</p>';
+        return;
+    }
+    
     try {
         filesListDiv.innerHTML = '<p class="loading">Loading files...</p>';
         
-        const url = currentFolder === '/' 
-            ? '/api/files' 
-            : `/api/files?folder=${encodeURIComponent(currentFolder)}`;
+        const url = `/api/files?folder=${encodeURIComponent(currentFolder)}`;
         
         const response = await fetch(url);
         const data = await response.json();
