@@ -67,13 +67,13 @@ function updateFolderDropdown(folders) {
     
     folders.forEach(folder => {
         const option = document.createElement('option');
-        option.value = folder.name;
-        option.textContent = folder.name;
+        option.value = folder;
+        option.textContent = folder;
         select.appendChild(option);
     });
     
     // Restore previous selection if it exists
-    if (currentValue && folders.find(f => f.name === currentValue)) {
+    if (currentValue && folders.includes(currentValue)) {
         select.value = currentValue;
     }
 }
