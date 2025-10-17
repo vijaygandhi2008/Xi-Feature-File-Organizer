@@ -5,7 +5,7 @@ This document describes the REST API endpoints provided by the Xi-IMB Feature Fi
 
 ## Base URL
 ```
-http://localhost:5000
+http://localhost:3000
 ```
 
 ## Endpoints
