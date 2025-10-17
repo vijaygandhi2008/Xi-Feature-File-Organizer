@@ -4,14 +4,24 @@ const path = require('path');
 
 // Mock the node-smb2 Client to avoid actual SMB connections during tests
 jest.mock('node-smb2', () => ({
-  Client: jest.fn().mockImplementation(() => ({
-    readdir: jest.fn().mockResolvedValue([]),
-    readFile: jest.fn().mockResolvedValue(Buffer.from('test')),
-    writeFile: jest.fn().mockResolvedValue(undefined),
-    mkdir: jest.fn().mockResolvedValue(undefined),
-    exists: jest.fn().mockResolvedValue(false),
-    unlink: jest.fn().mockResolvedValue(undefined)
-  }))
+  Client: jest.fn().mockImplementation(() => {
+    const mockTree = {
+      readDirectory: jest.fn().mockResolvedValue([]),
+      readFile: jest.fn().mockResolvedValue(Buffer.from('test')),
+      writeFile: jest.fn().mockResolvedValue(undefined),
+      createDirectory: jest.fn().mockResolvedValue(undefined),
+      exists: jest.fn().mockResolvedValue(false),
+      unlink: jest.fn().mockResolvedValue(undefined)
+    };
+    
+    const mockSession = {
+      connectTree: jest.fn().mockResolvedValue(mockTree)
+    };
+    
+    return {
+      authenticate: jest.fn().mockResolvedValue(mockSession)
+    };
+  })
 }));
 
 describe('SMB File Upload and Download Tests', () => {
