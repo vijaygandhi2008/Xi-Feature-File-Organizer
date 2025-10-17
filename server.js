@@ -1,10 +1,11 @@
 const express = require('express');
 const multer = require('multer');
-const { Client: SMB2Client } = require('node-smb2');
+const SMB2 = require('smb2');
 const fs = require('fs').promises;
 const path = require('path');
 const config = require('./config.json');
 const archiver = require('archiver');
+const { promisify } = require('util');
 
 const app = express();
 const upload = multer({ dest: 'uploads/' });
@@ -17,32 +18,14 @@ app.use(express.json());
 const uploadsDir = path.join(__dirname, 'uploads');
 fs.mkdir(uploadsDir, { recursive: true }).catch(console.error);
 
-// Parse SMB share to get host and share name
-function parseSMBShare(shareString) {
-  // shareString format: //192.168.8.4/Ocean
-  const match = shareString.match(/^\/\/([^\/]+)\/(.+)$/);
-  if (!match) {
-    throw new Error(`Invalid SMB share format: ${shareString}`);
-  }
-  return {
-    host: match[1],
-    shareName: match[2]
-  };
-}
-
-// SMB connection helper - returns connected tree
-async function getSMBTree() {
-  const { host, shareName } = parseSMBShare(config.smb.share);
-  
-  const client = new SMB2Client(host);
-  const session = await client.authenticate({
+// Create SMB2 client
+function createSMBClient() {
+  return new SMB2({
+    share: config.smb.share,
     domain: config.smb.domain || 'WORKGROUP',
     username: config.smb.user,
     password: config.smb.password
   });
-  const tree = await session.connectTree(shareName);
-  
-  return tree;
 }
 
 // Helper to get full remote path
@@ -51,22 +34,24 @@ function getRemotePath(relativePath) {
   if (!relativePath || relativePath === '/' || relativePath === '') {
     return basePath;
   }
-  // Use forward slashes for SMB paths
-  const cleanBasePath = basePath.replace(/\\/g, '/');
-  const cleanRelativePath = relativePath.replace(/\\/g, '/');
-  return cleanBasePath + (cleanRelativePath.startsWith('/') ? '' : '/') + cleanRelativePath;
+  // Use backslashes for SMB paths
+  const cleanBasePath = basePath.replace(/\//g, '\\');
+  const cleanRelativePath = relativePath.replace(/\//g, '\\');
+  return cleanBasePath + (cleanRelativePath.startsWith('\\') ? '' : '\\') + cleanRelativePath;
 }
 
 // Upload file to SMB
 app.post('/api/upload', upload.array('files', 50), async (req, res) => {
-  let tree = null;
-  
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No files uploaded' });
     }
 
-    tree = await getSMBTree();
+    const smbClient = createSMBClient();
+    const readdir = promisify(smbClient.readdir.bind(smbClient));
+    const mkdir = promisify(smbClient.mkdir.bind(smbClient));
+    const writeFile = promisify(smbClient.writeFile.bind(smbClient));
+    
     const uploadedFiles = [];
 
     for (const file of req.files) {
@@ -82,22 +67,23 @@ app.post('/api/upload', upload.array('files', 50), async (req, res) => {
       const remoteFolderPath = getRemotePath(folderName);
       
       try {
-        const exists = await tree.exists(remoteFolderPath);
-        if (!exists) {
-          await tree.createDirectory(remoteFolderPath);
-          console.log(`Created new folder: ${remoteFolderPath}`);
-        } else {
-          console.log(`Using existing folder: ${remoteFolderPath}`);
-        }
+        await readdir(remoteFolderPath);
+        console.log(`Using existing folder: ${remoteFolderPath}`);
       } catch (err) {
-        console.error('Error checking/creating directory:', err);
+        // Directory doesn't exist, create it
+        try {
+          await mkdir(remoteFolderPath);
+          console.log(`Created new folder: ${remoteFolderPath}`);
+        } catch (mkdirErr) {
+          console.error('Error creating directory:', mkdirErr);
+        }
       }
       
       // Upload to folder
-      const remoteFilePath = getRemotePath(`${folderName}/${filename}`);
+      const remoteFilePath = getRemotePath(`${folderName}\\${filename}`);
       const fileContent = await fs.readFile(localFilePath);
       
-      await tree.writeFile(remoteFilePath, fileContent);
+      await writeFile(remoteFilePath, fileContent);
       
       // Clean up local file after upload
       await fs.unlink(localFilePath);
@@ -121,21 +107,24 @@ app.post('/api/upload', upload.array('files', 50), async (req, res) => {
 
 // List files in SMB directory
 app.get('/api/files', async (req, res) => {
-  let tree = null;
-  
   try {
-    tree = await getSMBTree();
+    const smbClient = createSMBClient();
+    const readdir = promisify(smbClient.readdir.bind(smbClient));
+    
     const folder = req.query.folder || '';
     const remotePath = getRemotePath(folder);
     
-    const files = await tree.readDirectory(remotePath);
+    const files = await readdir(remotePath);
 
-    const fileList = files.map(file => ({
-      name: file.name,
-      size: file.size,
-      type: file.isDirectory ? 'directory' : 'file',
-      modifiedAt: file.lastModifiedTime
-    })).filter(f => f.name !== '.' && f.name !== '..');
+    const fileList = [];
+    for (const filename of files) {
+      if (filename !== '.' && filename !== '..') {
+        fileList.push({
+          name: filename,
+          type: 'file' // SMB2 readdir doesn't provide detailed stats by default
+        });
+      }
+    }
 
     res.json({ success: true, files: fileList, currentFolder: folder || '/' });
   } catch (error) {
@@ -149,17 +138,31 @@ app.get('/api/files', async (req, res) => {
 
 // List directories only
 app.get('/api/directories', async (req, res) => {
-  let tree = null;
-  
   try {
-    tree = await getSMBTree();
+    const smbClient = createSMBClient();
+    const readdir = promisify(smbClient.readdir.bind(smbClient));
+    const exists = promisify(smbClient.exists.bind(smbClient));
+    
     const remotePath = getRemotePath('');
     
-    const files = await tree.readDirectory(remotePath);
+    const files = await readdir(remotePath);
 
-    const directories = files
-      .filter(file => file.isDirectory && file.name !== '.' && file.name !== '..')
-      .map(file => ({ name: file.name }));
+    const directories = [];
+    for (const filename of files) {
+      if (filename !== '.' && filename !== '..') {
+        // Check if it's a directory by trying to read it
+        const testPath = getRemotePath(filename);
+        try {
+          const isDir = await exists(testPath);
+          if (isDir) {
+            directories.push({ name: filename });
+          }
+        } catch (err) {
+          // Assume it's a directory if we can't determine
+          directories.push({ name: filename });
+        }
+      }
+    }
 
     res.json({ success: true, directories });
   } catch (error) {
@@ -173,15 +176,16 @@ app.get('/api/directories', async (req, res) => {
 
 // Download file from SMB
 app.get('/api/download/:filename', async (req, res) => {
-  let tree = null;
   const filename = req.params.filename;
   const folder = req.query.folder || '';
-  const remotePath = getRemotePath(folder ? `${folder}/${filename}` : filename);
+  const remotePath = getRemotePath(folder ? `${folder}\\${filename}` : filename);
   const localFilePath = path.join(uploadsDir, `download_${Date.now()}_${filename}`);
 
   try {
-    tree = await getSMBTree();
-    const fileContent = await tree.readFile(remotePath);
+    const smbClient = createSMBClient();
+    const readFile = promisify(smbClient.readFile.bind(smbClient));
+    
+    const fileContent = await readFile(remotePath);
 
     await fs.writeFile(localFilePath, fileContent);
 
@@ -211,7 +215,6 @@ app.get('/api/download/:filename', async (req, res) => {
 
 // Download multiple files as ZIP
 app.post('/api/download-multiple', async (req, res) => {
-  let tree = null;
   const { files, folder } = req.body;
   
   if (!files || files.length === 0) {
@@ -221,14 +224,15 @@ app.post('/api/download-multiple', async (req, res) => {
   const tempFiles = [];
   
   try {
-    tree = await getSMBTree();
+    const smbClient = createSMBClient();
+    const readFile = promisify(smbClient.readFile.bind(smbClient));
     
     // Download all files
     for (const filename of files) {
-      const remotePath = getRemotePath(folder ? `${folder}/${filename}` : filename);
+      const remotePath = getRemotePath(folder ? `${folder}\\${filename}` : filename);
       const localFilePath = path.join(uploadsDir, `temp_${Date.now()}_${filename}`);
       
-      const fileContent = await tree.readFile(remotePath);
+      const fileContent = await readFile(remotePath);
       
       await fs.writeFile(localFilePath, fileContent);
       tempFiles.push({ local: localFilePath, name: filename });
@@ -277,14 +281,15 @@ app.post('/api/download-multiple', async (req, res) => {
 
 // Delete file from SMB
 app.delete('/api/delete/:filename', async (req, res) => {
-  let tree = null;
   const filename = req.params.filename;
   const folder = req.query.folder || '';
-  const remotePath = getRemotePath(folder ? `${folder}/${filename}` : filename);
+  const remotePath = getRemotePath(folder ? `${folder}\\${filename}` : filename);
   
   try {
-    tree = await getSMBTree();
-    await tree.unlink(remotePath);
+    const smbClient = createSMBClient();
+    const unlink = promisify(smbClient.unlink.bind(smbClient));
+    
+    await unlink(remotePath);
 
     res.json({ 
       success: true, 
