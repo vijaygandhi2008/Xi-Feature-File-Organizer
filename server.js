@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const SMB2 = require('node-smb2');
+const { Client: SMB2Client } = require('node-smb2');
 const fs = require('fs').promises;
 const path = require('path');
 const config = require('./config.json');
@@ -19,7 +19,7 @@ fs.mkdir(uploadsDir, { recursive: true }).catch(console.error);
 
 // SMB client helper
 function createSMBClient() {
-  return new SMB2({
+  return new SMB2Client({
     share: config.smb.share,
     domain: config.smb.domain || 'WORKGROUP',
     username: config.smb.user,

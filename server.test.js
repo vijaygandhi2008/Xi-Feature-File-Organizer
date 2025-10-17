@@ -2,8 +2,17 @@ const request = require('supertest');
 const fs = require('fs');
 const path = require('path');
 
-// Mock the SMB2 client to avoid actual SMB connections during tests
-jest.mock('node-smb2');
+// Mock the node-smb2 Client to avoid actual SMB connections during tests
+jest.mock('node-smb2', () => ({
+  Client: jest.fn().mockImplementation(() => ({
+    readdir: jest.fn().mockResolvedValue([]),
+    readFile: jest.fn().mockResolvedValue(Buffer.from('test')),
+    writeFile: jest.fn().mockResolvedValue(undefined),
+    mkdir: jest.fn().mockResolvedValue(undefined),
+    exists: jest.fn().mockResolvedValue(false),
+    unlink: jest.fn().mockResolvedValue(undefined)
+  }))
+}));
 
 describe('SMB File Upload and Download Tests', () => {
   let app;
@@ -103,9 +112,6 @@ describe('SMB File Upload and Download Tests', () => {
     });
 
     test('should upload multiple files successfully (mocked)', async () => {
-      // Mock SMB operations
-      const SMB2 = require('node-smb2');
-      
       const testFile = path.join(__dirname, 'test-files', testFiles[0].name);
       
       // Note: Actual upload test would require a running server
