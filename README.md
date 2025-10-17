@@ -48,7 +48,7 @@ pip install -r requirements.txt
   },
   "server": {
     "host": "localhost",
-    "port": 5000,
+    "port": 3000,
     "debug": false
   }
 }
@@ -69,7 +69,7 @@ python app.py
 
 2. Open your browser and navigate to:
 ```
-http://localhost:5000
+http://localhost:3000
 ```
 
 3. Use the web interface to:
