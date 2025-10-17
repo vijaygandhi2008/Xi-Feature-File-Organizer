@@ -211,10 +211,16 @@ def upload_files():
                 remote_path = get_remote_path(folder)
                 
                 # Check if folder exists, create if it doesn't
+                folder_exists = False
                 try:
+                    # Try to list the directory to check if it exists
                     conn.listPath(share_name, remote_path)
+                    folder_exists = True
                     print(f"Using existing folder: {remote_path}")
-                except OperationFailure:
+                except (OperationFailure, Exception) as e:
+                    print(f"Folder doesn't exist: {remote_path}, creating it...")
+                
+                if not folder_exists:
                     # Folder doesn't exist, create it
                     try:
                         conn.createDirectory(share_name, remote_path)
@@ -226,20 +232,28 @@ def upload_files():
                 
                 # Upload file
                 try:
-                    file_path = f"{remote_path}/{filename}"
-                    file_obj = BytesIO(file.read())
+                    # Construct proper file path
+                    file_path = f"{remote_path}/{filename}".replace('//', '/')
+                    
+                    # Read file content into BytesIO
+                    file_content = file.read()
+                    file_obj = BytesIO(file_content)
+                    
+                    # Upload to SMB share
                     conn.storeFile(share_name, file_path, file_obj)
+                    
                     uploaded_files.append({
                         'filename': filename,
                         'folder': folder
                     })
-                    print(f"Uploaded: {filename} to {folder}")
+                    print(f"Uploaded: {filename} to {folder} (path: {file_path})")
                 except Exception as e:
                     print(f"Error uploading {filename}: {e}")
                     errors.append(f"{filename}: {str(e)}")
             
             return jsonify({
                 'success': len(uploaded_files) > 0,
+                'files': uploaded_files,  # For backward compatibility
                 'uploaded': uploaded_files,
                 'errors': errors,
                 'count': len(uploaded_files)
