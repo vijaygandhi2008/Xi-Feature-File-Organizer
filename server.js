@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const SMB2 = require('smb2');
+const SMB2 = require('node-smb2');
 const fs = require('fs').promises;
 const path = require('path');
 const config = require('./config.json');

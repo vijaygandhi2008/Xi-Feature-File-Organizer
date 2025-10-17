@@ -130,7 +130,7 @@ See [API.md](API.md) for detailed documentation.
 ## Technologies Used
 
 - **Backend**: Node.js, Express.js
-- **SMB Client**: @marsaud/smb2
+- **SMB Client**: node-smb2
 - **File Upload**: Multer
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
 
