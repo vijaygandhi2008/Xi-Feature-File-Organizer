@@ -28,6 +28,16 @@ header {
 header h1 {
     color: #333;
     margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.header-icon {
+    width: 32px;
+    height: 32px;
+    vertical-align: middle;
 }
 
 header p {
