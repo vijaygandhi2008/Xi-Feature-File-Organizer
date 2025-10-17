@@ -87,9 +87,16 @@ function filterFolders() {
         updateFolderDropdown(allFolders);
     } else {
         const filtered = allFolders.filter(folder => 
-            folder.name.toLowerCase().includes(searchTerm)
+            folder.toLowerCase().includes(searchTerm)
         );
         updateFolderDropdown(filtered);
+        
+        // If exactly one folder matches, auto-select it
+        if (filtered.length === 1) {
+            const select = document.getElementById('folderSelect');
+            select.value = filtered[0];
+            onFolderChange();
+        }
     }
 }
 
@@ -183,13 +190,7 @@ function createFileItem(file) {
     downloadBtn.textContent = '⬇ Download';
     downloadBtn.onclick = () => downloadFile(file.name);
 
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'btn btn-delete';
-    deleteBtn.textContent = '🗑 Delete';
-    deleteBtn.onclick = () => deleteFile(file.name);
-
     fileActions.appendChild(downloadBtn);
-    fileActions.appendChild(deleteBtn);
 
     div.appendChild(checkbox);
     div.appendChild(fileInfo);
@@ -229,7 +230,9 @@ async function downloadSelected() {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'files.zip';
+            // Use current folder name for zip file
+            const folderName = currentFolder && currentFolder !== '/' ? currentFolder : 'files';
+            a.download = `${folderName}.zip`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -259,30 +262,6 @@ async function downloadFile(filename) {
         window.location.href = url;
     } catch (error) {
         showStatus(`✗ Download failed: ${error.message}`, 'error');
-    }
-}
-
-// Delete file from FTP
-async function deleteFile(filename) {
-    if (!confirm(`Are you sure you want to delete "${filename}"?`)) {
-        return;
-    }
-
-    try {
-        const response = await fetch(`/api/delete/${encodeURIComponent(filename)}`, {
-            method: 'DELETE'
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            showStatus(`✓ File "${filename}" deleted successfully!`, 'success');
-            refreshFileList();
-        } else {
-            showStatus(`✗ Delete failed: ${data.error}`, 'error');
-        }
-    } catch (error) {
-        showStatus(`✗ Delete failed: ${error.message}`, 'error');
     }
 }
 

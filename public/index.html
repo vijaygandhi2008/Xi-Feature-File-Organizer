@@ -33,7 +33,7 @@
                     <div class="folder-dropdown">
                         <label for="folderSelect">Select Folder:</label>
                         <select id="folderSelect" onchange="onFolderChange()">
-                            <option value="/">Root Directory</option>
+                            <option value="">Select folder from dropdown</option>
                         </select>
                     </div>
                     
@@ -42,7 +42,9 @@
                         <input type="text" id="folderSearch" placeholder="Type folder name..." oninput="filterFolders()">
                     </div>
                     
-                    <button onclick="refreshFileList()" class="btn btn-secondary">🔄 Refresh</button>
+                    <div class="refresh-action">
+                        <button onclick="refreshFileList()" class="btn btn-secondary">🔄 Refresh</button>
+                    </div>
                 </div>
 
                 <!-- Current folder display -->
