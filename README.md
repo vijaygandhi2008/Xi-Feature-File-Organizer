@@ -1,6 +1,6 @@
-# web-ftp-app
+# Web SMB/Samba Application
 
-A web application to upload and download files to/from a remote SMB/Samba share.
+A Python-based web application to upload and download files to/from a remote SMB/Samba share with automatic folder organization.
 
 ## Features
 
@@ -15,7 +15,8 @@ A web application to upload and download files to/from a remote SMB/Samba share.
 
 ## Prerequisites
 
-- Node.js (v14 or higher)
+- Python 3.8 or higher
+- pip (Python package manager)
 - Access to an SMB/Samba server
 
 ## Installation
@@ -26,9 +27,9 @@ git clone https://github.com/vijaygandhi2008/web-ftp-app.git
 cd web-ftp-app
 ```
 
-2. Install dependencies:
+2. Install Python dependencies:
 ```bash
-npm install
+pip install -r requirements.txt
 ```
 
 3. Configure SMB settings:
@@ -37,38 +38,45 @@ npm install
 ```json
 {
   "smb": {
-    "share": "//192.168.8.4/Ocean",
+    "server_name": "192.168.8.4",
+    "server_ip": "192.168.8.4",
+    "share_name": "Ocean",
     "path": "/Inbox/QubeXP/Xi-FeatureFiles",
     "domain": "WORKGROUP",
-    "user": "your-username",
+    "username": "your-username",
     "password": "your-password"
   },
   "server": {
-    "port": 3000
+    "host": "localhost",
+    "port": 5000,
+    "debug": false
   }
 }
 ```
 
-**Note**: Split your SMB path into:
-- `share`: The root SMB share (e.g., `//192.168.8.4/Ocean`)
-- `path`: The subdirectory within the share (e.g., `/Inbox/QubeXP/Xi-FeatureFiles`)
+**Note**: Configure SMB settings:
+- `server_name`: SMB server hostname (e.g., `192.168.8.4`)
+- `server_ip`: SMB server IP address (e.g., `192.168.8.4`)
+- `share_name`: Root SMB share name (e.g., `Ocean`)
+- `path`: Subdirectory within the share (e.g., `/Inbox/QubeXP/Xi-FeatureFiles`)
 
 ## Usage
 
-1. Start the server:
+1. Start the Python Flask server:
 ```bash
-npm start
+python app.py
 ```
 
 2. Open your browser and navigate to:
 ```
-http://localhost:3000
+http://localhost:5000
 ```
 
 3. Use the web interface to:
    - **Upload files**: Select one or multiple files, click "Upload to SMB"
      - Files are automatically organized into folders based on the filename pattern: `filename.split('-')[-1].split('.')[0]`
      - Example: `report-data-sales.pdf` will be stored in folder `sales`
+     - Example: `feature-file-4k_hfr-304546.xml` will be stored in folder `304546`
    - **Browse folders**: Use the dropdown to select a folder or search for folders by name
    - **View files**: Click "Refresh" to load files from the selected folder
    - **Download single file**: Click the "Download" button next to any file
@@ -79,17 +87,23 @@ http://localhost:3000
 
 The `config.json` file contains the following settings:
 
-- `smb.share`: SMB root share path (e.g., `//192.168.8.4/Ocean`)
+- `smb.server_name`: SMB server hostname (e.g., `192.168.8.4`)
+- `smb.server_ip`: SMB server IP address (e.g., `192.168.8.4`)
+- `smb.share_name`: Root SMB share name (e.g., `Ocean`)
 - `smb.path`: Subdirectory within the share (e.g., `/Inbox/QubeXP/Xi-FeatureFiles`)
 - `smb.domain`: SMB domain (default: `WORKGROUP`)
-- `smb.user`: SMB username
+- `smb.username`: SMB username
 - `smb.password`: SMB password
-- `server.port`: Web server port (default: 3000)
+- `server.host`: Web server host (default: `localhost`)
+- `server.port`: Web server port (default: `5000`)
+- `server.debug`: Debug mode (default: `false`)
 
-**Important**: Split your full SMB path into `share` and `path` components:
-- Full path: `//192.168.8.4/Ocean/Inbox/QubeXP/Xi-FeatureFiles`
+**Important**: Configure your SMB connection correctly:
+- Full SMB path: `smb://192.168.8.4/Ocean/Inbox/QubeXP/Xi-FeatureFiles`
 - Split into: 
-  - `share`: `//192.168.8.4/Ocean`
+  - `server_name`: `192.168.8.4`
+  - `server_ip`: `192.168.8.4`
+  - `share_name`: `Ocean`
   - `path`: `/Inbox/QubeXP/Xi-FeatureFiles`
 
 ## Testing
@@ -99,11 +113,14 @@ The `config.json` file contains the following settings:
 Run the automated test suite to validate all functionality:
 
 ```bash
-# Run all tests with coverage
-npm test
+# Run all tests
+pytest
 
-# Run tests in watch mode
-npm run test:watch
+# Run tests with coverage
+pytest --cov=app
+
+# Run tests in verbose mode
+pytest -v
 ```
 
 **Test Coverage:**
@@ -121,18 +138,25 @@ The application exposes the following REST API endpoints:
 - `POST /api/upload` - Upload multiple files to SMB server (organized into folders automatically)
 - `GET /api/files?folder=<name>` - List all files in SMB directory or specific folder
 - `GET /api/directories` - List all directories in SMB root
-- `GET /api/download/:filename?folder=<name>` - Download a file from SMB server
+- `GET /api/download/<filename>?folder=<name>` - Download a file from SMB server
 - `POST /api/download-multiple` - Download multiple files as ZIP archive
-- `DELETE /api/delete/:filename` - Delete a file from SMB server
+- `DELETE /api/delete/<filename>` - Delete a file from SMB server
 
 See [API.md](API.md) for detailed documentation.
 
 ## Technologies Used
 
-- **Backend**: Node.js, Express.js
-- **SMB Client**: node-smb2
-- **File Upload**: Multer
+- **Backend**: Python 3.8+, Flask
+- **SMB Client**: pysmb (pure Python SMB implementation)
+- **File Upload**: Flask file handling with Werkzeug
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
+
+## Architecture
+
+- **Python Flask Backend**: RESTful API server with pysmb library for SMB operations
+- **pysmb Library**: Well-maintained, pure Python SMB/CIFS library with SMB2/SMB3 support
+- **Cross-Platform**: Works on macOS, Windows, and Linux without native dependencies
+- **Async Operations**: Efficient file operations with Python's async capabilities
 
 ## Security Notes
 
@@ -140,6 +164,7 @@ See [API.md](API.md) for detailed documentation.
 - Never commit `config.json` with real credentials to version control
 - Use environment variables for production deployments
 - Implement authentication for the web interface in production
+- The application follows Python PEP standards and security best practices
 
 ## License
 

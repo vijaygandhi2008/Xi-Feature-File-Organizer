@@ -1,11 +1,11 @@
 # API Documentation
 
 ## Overview
-This document describes the REST API endpoints provided by the Web SMB/Samba Application.
+This document describes the REST API endpoints provided by the Web SMB/Samba Application (Python Flask backend).
 
 ## Base URL
 ```
-http://localhost:3000
+http://localhost:5000
 ```
 
 ## Endpoints
@@ -50,7 +50,7 @@ The folder name is extracted from the filename using: `filename.split('-')[-1].s
 ---
 
 ### 2. List Files
-Get a list of all files in the FTP directory or a specific folder.
+Get a list of all files in the SMB directory or a specific folder.
 
 **Endpoint:** `GET /api/files`
 
@@ -84,7 +84,7 @@ Get a list of all files in the FTP directory or a specific folder.
 ---
 
 ### 3. List Directories
-Get a list of all directories in the FTP root.
+Get a list of all directories in the SMB root.
 
 **Endpoint:** `GET /api/directories`
 
@@ -110,9 +110,9 @@ Get a list of all directories in the FTP root.
 ---
 
 ### 4. Download Single File
-Download a single file from the FTP server.
+Download a single file from the SMB server.
 
-**Endpoint:** `GET /api/download/:filename`
+**Endpoint:** `GET /api/download/<filename>`
 
 **Parameters:**
 - `filename` (path parameter): Name of the file to download
@@ -160,9 +160,9 @@ Download multiple selected files as a ZIP archive.
 ---
 
 ### 6. Delete File
-Delete a file from the FTP server.
+Delete a file from the SMB server.
 
-**Endpoint:** `DELETE /api/delete/:filename`
+**Endpoint:** `DELETE /api/delete/<filename>`
 
 **Parameters:**
 - `filename` (path parameter): Name of the file to delete
@@ -194,22 +194,22 @@ Delete a file from the FTP server.
 curl -X POST \
   -F "files=@/path/to/report-data-sales.pdf" \
   -F "files=@/path/to/image-photo-vacation.jpg" \
-  http://localhost:3000/api/upload
+  http://localhost:5000/api/upload
 ```
 
 **List files in a folder:**
 ```bash
-curl "http://localhost:3000/api/files?folder=sales"
+curl "http://localhost:5000/api/files?folder=sales"
 ```
 
 **List directories:**
 ```bash
-curl http://localhost:3000/api/directories
+curl http://localhost:5000/api/directories
 ```
 
 **Download a file from a folder:**
 ```bash
-curl -O "http://localhost:3000/api/download/report.pdf?folder=sales"
+curl -O "http://localhost:5000/api/download/report.pdf?folder=sales"
 ```
 
 **Download multiple files as ZIP:**
@@ -217,12 +217,12 @@ curl -O "http://localhost:3000/api/download/report.pdf?folder=sales"
 curl -X POST \
   -H "Content-Type: application/json" \
   -d '{"files":["file1.txt","file2.pdf"],"folder":"sales"}' \
-  http://localhost:3000/api/download-multiple -o files.zip
+  http://localhost:5000/api/download-multiple -o files.zip
 ```
 
 **Delete a file:**
 ```bash
-curl -X DELETE http://localhost:3000/api/delete/file.txt
+curl -X DELETE http://localhost:5000/api/delete/file.txt
 ```
 
 ### Using JavaScript (Fetch API)
@@ -276,14 +276,15 @@ a.click();
 ## Error Codes
 
 - `400` - Bad Request (e.g., no files uploaded)
-- `500` - Internal Server Error (e.g., FTP connection failed)
+- `500` - Internal Server Error (e.g., SMB connection failed)
 
 ## Notes
 
-- All file operations require a valid FTP connection configured in `config.json`
-- File uploads are temporarily stored in the `uploads/` directory before being transferred to FTP
+- All file operations require a valid SMB connection configured in `config.json`
+- File uploads are temporarily stored in the `uploads/` directory before being transferred to SMB
 - Files are automatically organized into folders based on filename pattern: `filename.split('-')[-1].split('.')[0]`
 - Multiple files can be uploaded simultaneously (max 50 files)
 - Downloaded files are temporarily stored and automatically cleaned up after download
 - Multiple file downloads are packaged as ZIP archives
+- The application uses Python Flask backend with pysmb library for reliable SMB operations
 - The application does not implement authentication - consider adding it for production use
