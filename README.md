@@ -1,6 +1,6 @@
-# Web SMB/Samba Application
+# Xi-IMB Feature File Organizer
 
-A Python-based web application to upload and download files to/from a remote SMB/Samba share with automatic folder organization.
+A Python-based web application to upload and download Xi feature files to/from SBNAS with automatic folder organization.
 
 ## Features
 
@@ -23,8 +23,8 @@ A Python-based web application to upload and download files to/from a remote SMB
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/vijaygandhi2008/web-ftp-app.git
-cd web-ftp-app
+git clone https://github.com/vijaygandhi2008/Xi-Feature-File-Organizer.git
+cd Xi-Feature-File-Organizer
 ```
 
 2. Install Python dependencies:
@@ -54,10 +54,10 @@ pip install -r requirements.txt
 }
 ```
 
-**Note**: Configure SMB settings:
-- `server_name`: SMB server hostname (e.g., `192.168.8.4`)
-- `server_ip`: SMB server IP address (e.g., `192.168.8.4`)
-- `share_name`: Root SMB share name (e.g., `Ocean`)
+**Note**: Configure SBNAS settings:
+- `server_name`: SBNAS server hostname (e.g., `192.168.8.4`)
+- `server_ip`: SBNAS server IP address (e.g., `192.168.8.4`)
+- `share_name`: Root SBNAS share name (e.g., `Ocean`)
 - `path`: Subdirectory within the share (e.g., `/Inbox/QubeXP/Xi-FeatureFiles`)
 
 ## Usage
@@ -73,7 +73,7 @@ http://localhost:5000
 ```
 
 3. Use the web interface to:
-   - **Upload files**: Select one or multiple files, click "Upload to SMB"
+   - **Upload files**: Select one or multiple files, click "Upload to SBNAS"
      - Files are automatically organized into folders based on the filename pattern: `filename.split('-')[-1].split('.')[0]`
      - Example: `report-data-sales.pdf` will be stored in folder `sales`
      - Example: `feature-file-4k_hfr-304546.xml` will be stored in folder `304546`
@@ -87,19 +87,19 @@ http://localhost:5000
 
 The `config.json` file contains the following settings:
 
-- `smb.server_name`: SMB server hostname (e.g., `192.168.8.4`)
-- `smb.server_ip`: SMB server IP address (e.g., `192.168.8.4`)
-- `smb.share_name`: Root SMB share name (e.g., `Ocean`)
+- `smb.server_name`: SBNAS server hostname (e.g., `192.168.8.4`)
+- `smb.server_ip`: SBNAS server IP address (e.g., `192.168.8.4`)
+- `smb.share_name`: Root SBNAS share name (e.g., `Ocean`)
 - `smb.path`: Subdirectory within the share (e.g., `/Inbox/QubeXP/Xi-FeatureFiles`)
-- `smb.domain`: SMB domain (default: `WORKGROUP`)
-- `smb.username`: SMB username
-- `smb.password`: SMB password
+- `smb.domain`: SBNAS domain (default: `WORKGROUP`)
+- `smb.username`: SBNAS username
+- `smb.password`: SBNAS password
 - `server.host`: Web server host (default: `localhost`)
 - `server.port`: Web server port (default: `5000`)
 - `server.debug`: Debug mode (default: `false`)
 
-**Important**: Configure your SMB connection correctly:
-- Full SMB path: `smb://192.168.8.4/Ocean/Inbox/QubeXP/Xi-FeatureFiles`
+**Important**: Configure your SBNAS connection correctly:
+- Full SBNAS path: `smb://192.168.8.4/Ocean/Inbox/QubeXP/Xi-FeatureFiles`
 - Split into: 
   - `server_name`: `192.168.8.4`
   - `server_ip`: `192.168.8.4`
@@ -135,12 +135,12 @@ See [TESTING.md](TESTING.md) for detailed test documentation.
 
 The application exposes the following REST API endpoints:
 
-- `POST /api/upload` - Upload multiple files to SMB server (organized into folders automatically)
-- `GET /api/files?folder=<name>` - List all files in SMB directory or specific folder
-- `GET /api/directories` - List all directories in SMB root
-- `GET /api/download/<filename>?folder=<name>` - Download a file from SMB server
+- `POST /api/upload` - Upload multiple files to SBNAS (organized into folders automatically)
+- `GET /api/files?folder=<name>` - List all files in SBNAS directory or specific folder
+- `GET /api/directories` - List all directories in SBNAS root
+- `GET /api/download/<filename>?folder=<name>` - Download a file from SBNAS
 - `POST /api/download-multiple` - Download multiple files as ZIP archive
-- `DELETE /api/delete/<filename>` - Delete a file from SMB server
+- `DELETE /api/delete/<filename>` - Delete a file from SBNAS
 
 See [API.md](API.md) for detailed documentation.
 
