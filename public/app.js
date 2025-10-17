@@ -2,7 +2,7 @@ let currentFolder = '';
 let allFolders = [];
 let selectedFiles = new Set();
 
-// Upload files to FTP
+// Upload files to SBNAS
 async function uploadFiles() {
     const fileInput = document.getElementById('fileInput');
     const statusDiv = document.getElementById('uploadStatus');
@@ -204,12 +204,38 @@ function updateSelectedCount() {
     const count = selectedFiles.size;
     document.getElementById('selectedCount').textContent = count;
     document.getElementById('downloadSelectedBtn').disabled = count === 0;
+    
+    // Update select all checkbox state
+    const checkboxes = document.querySelectorAll('.file-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    if (selectAllCheckbox && checkboxes.length > 0) {
+        selectAllCheckbox.checked = checkboxes.length === count;
+        selectAllCheckbox.indeterminate = count > 0 && count < checkboxes.length;
+    }
+}
+
+// Toggle select all
+function toggleSelectAll() {
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const checkboxes = document.querySelectorAll('.file-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+        const fileName = checkbox.closest('.file-item').querySelector('.file-name').textContent;
+        if (selectAllCheckbox.checked) {
+            selectedFiles.add(fileName);
+        } else {
+            selectedFiles.delete(fileName);
+        }
+    });
+    
+    updateSelectedCount();
 }
 
 // Download selected files
 async function downloadSelected() {
     if (selectedFiles.size === 0) {
-        showStatus('Please select at least one file', 'error');
+        showDownloadStatus('Please select at least one file', 'error');
         return;
     }
 
@@ -238,36 +264,50 @@ async function downloadSelected() {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
             
-            showStatus(`✓ ${selectedFiles.size} file(s) downloaded successfully!`, 'success');
+            showDownloadStatus(`✓ ${selectedFiles.size} file(s) downloaded successfully!`, 'success');
             selectedFiles.clear();
             updateSelectedCount();
             
             // Uncheck all checkboxes
             document.querySelectorAll('.file-checkbox').forEach(cb => cb.checked = false);
+            document.getElementById('selectAllCheckbox').checked = false;
         } else {
             const data = await response.json();
-            showStatus(`✗ Download failed: ${data.error}`, 'error');
+            showDownloadStatus(`✗ Download failed: ${data.error}`, 'error');
         }
     } catch (error) {
-        showStatus(`✗ Download failed: ${error.message}`, 'error');
+        showDownloadStatus(`✗ Download failed: ${error.message}`, 'error');
     }
 }
 
-// Download file from FTP
+// Download file from SBNAS
 async function downloadFile(filename) {
     try {
         const url = currentFolder === '/' 
             ? `/api/download/${encodeURIComponent(filename)}`
             : `/api/download/${encodeURIComponent(filename)}?folder=${encodeURIComponent(currentFolder)}`;
         window.location.href = url;
+        showDownloadStatus(`✓ File "${filename}" download started`, 'success');
     } catch (error) {
-        showStatus(`✗ Download failed: ${error.message}`, 'error');
+        showDownloadStatus(`✗ Download failed: ${error.message}`, 'error');
     }
 }
 
-// Show status message
+// Show status message for upload
 function showStatus(message, type) {
     const statusDiv = document.getElementById('uploadStatus');
+    statusDiv.textContent = message;
+    statusDiv.className = `status-message ${type}`;
+    
+    setTimeout(() => {
+        statusDiv.textContent = '';
+        statusDiv.className = 'status-message';
+    }, 5000);
+}
+
+// Show status message for download
+function showDownloadStatus(message, type) {
+    const statusDiv = document.getElementById('downloadStatus');
     statusDiv.textContent = message;
     statusDiv.className = `status-message ${type}`;
     

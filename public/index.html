@@ -39,11 +39,10 @@
                     
                     <div class="folder-search">
                         <label for="folderSearch">Search Folder:</label>
-                        <input type="text" id="folderSearch" placeholder="Type folder name..." oninput="filterFolders()">
-                    </div>
-                    
-                    <div class="refresh-action">
-                        <button onclick="refreshFileList()" class="btn btn-secondary">🔄 Refresh</button>
+                        <div class="search-with-refresh">
+                            <input type="text" id="folderSearch" placeholder="Type folder name..." oninput="filterFolders()">
+                            <button onclick="refreshFileList()" class="btn btn-secondary btn-refresh">🔄 Refresh</button>
+                        </div>
                     </div>
                 </div>
 
@@ -54,10 +53,15 @@
 
                 <!-- Download selected button -->
                 <div class="bulk-actions">
+                    <label class="select-all-label">
+                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                        <span>Select All</span>
+                    </label>
                     <button onclick="downloadSelected()" class="btn btn-download" id="downloadSelectedBtn" disabled>
                         ⬇ Download Selected (<span id="selectedCount">0</span>)
                     </button>
                 </div>
+                <div id="downloadStatus" class="status-message"></div>
 
                 <div id="filesList" class="files-list">
                     <p class="loading">Click refresh to load files...</p>
