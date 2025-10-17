@@ -374,7 +374,8 @@ def delete_file(filename):
 
 if __name__ == '__main__':
     port = config['server'].get('port', 5000)
+    debug_mode = config['server'].get('debug', False)
     print(f"Starting Flask server on port {port}")
     print(f"SMB Share: {config['smb']['share']}")
     print(f"SMB Path: {config['smb'].get('path', '/')}")
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)

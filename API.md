@@ -1,7 +1,7 @@
 # API Documentation
 
 ## Overview
-This document describes the REST API endpoints provided by the Web SMB/Samba Application (Python Flask backend).
+This document describes the REST API endpoints provided by the Xi-IMB Feature File Organizer (Python Flask backend).
 
 ## Base URL
 ```
@@ -11,7 +11,7 @@ http://localhost:5000
 ## Endpoints
 
 ### 1. Upload Files (Multiple)
-Upload one or more files to the SMB server. Files are automatically organized into folders based on the filename pattern.
+Upload one or more files to SBNAS. Files are automatically organized into folders based on the filename pattern.
 
 **Endpoint:** `POST /api/upload`
 
@@ -50,7 +50,7 @@ The folder name is extracted from the filename using: `filename.split('-')[-1].s
 ---
 
 ### 2. List Files
-Get a list of all files in the SMB directory or a specific folder.
+Get a list of all files in SBNAS directory or a specific folder.
 
 **Endpoint:** `GET /api/files`
 
@@ -84,7 +84,7 @@ Get a list of all files in the SMB directory or a specific folder.
 ---
 
 ### 3. List Directories
-Get a list of all directories in the SMB root.
+Get a list of all directories in SBNAS root.
 
 **Endpoint:** `GET /api/directories`
 
@@ -110,7 +110,7 @@ Get a list of all directories in the SMB root.
 ---
 
 ### 4. Download Single File
-Download a single file from the SMB server.
+Download a single file from SBNAS.
 
 **Endpoint:** `GET /api/download/<filename>`
 
@@ -160,7 +160,7 @@ Download multiple selected files as a ZIP archive.
 ---
 
 ### 6. Delete File
-Delete a file from the SMB server.
+Delete a file from SBNAS.
 
 **Endpoint:** `DELETE /api/delete/<filename>`
 
@@ -189,11 +189,11 @@ Delete a file from the SMB server.
 
 ### Using cURL
 
-**Upload multiple files:**
+**Upload multiple Xi feature files:**
 ```bash
 curl -X POST \
-  -F "files=@/path/to/report-data-sales.pdf" \
-  -F "files=@/path/to/image-photo-vacation.jpg" \
+  -F "files=@/path/to/feature-file-4k_hfr-304546.xml" \
+  -F "files=@/path/to/feature-file-4k_hfr_off-303045.xml" \
   http://localhost:5000/api/upload
 ```
 
@@ -280,11 +280,11 @@ a.click();
 
 ## Notes
 
-- All file operations require a valid SMB connection configured in `config.json`
-- File uploads are temporarily stored in the `uploads/` directory before being transferred to SMB
+- All file operations require a valid SBNAS connection configured in `config.json`
+- File uploads are temporarily stored in the `uploads/` directory before being transferred to SBNAS
 - Files are automatically organized into folders based on filename pattern: `filename.split('-')[-1].split('.')[0]`
 - Multiple files can be uploaded simultaneously (max 50 files)
 - Downloaded files are temporarily stored and automatically cleaned up after download
 - Multiple file downloads are packaged as ZIP archives
-- The application uses Python Flask backend with pysmb library for reliable SMB operations
+- The application uses Python Flask backend with pysmb library for reliable SBNAS operations
 - The application does not implement authentication - consider adding it for production use
