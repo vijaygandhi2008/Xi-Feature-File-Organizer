@@ -123,7 +123,8 @@ async function refreshFileList() {
         const data = await response.json();
 
         if (response.ok && data.files) {
-            const files = data.files.filter(f => f.type === 'file');
+            // Backend already filters for files only, no need to filter again
+            const files = data.files;
             
             if (files.length === 0) {
                 filesListDiv.innerHTML = '<p class="empty">No files found in this folder</p>';
