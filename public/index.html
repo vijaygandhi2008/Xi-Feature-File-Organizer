@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web SMB/Samba Application</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌐 Xi-IMB Feature File Organizer</h1>
+            <p>Upload and download Xi feature files to/from SBNAS</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Upload Section -->
+            <section class="upload-section">
+                <h2>📤 Upload Files</h2>
+                <div class="upload-form">
+                    <input type="file" id="fileInput" accept="*/*" multiple>
+                    <button onclick="uploadFiles()" class="btn btn-primary">Upload to SBNAS</button>
+                </div>
+                <div id="uploadStatus" class="status-message"></div>
+            </section>
+
+            <!-- Files List Section -->
+            <section class="files-section">
+                <h2>📁 Xi Feature Files Downloader</h2>
+                
+                <!-- Folder selection -->
+                <div class="folder-controls">
+                    <div class="folder-dropdown">
+                        <label for="folderSelect">Select Folder:</label>
+                        <select id="folderSelect" onchange="onFolderChange()">
+                            <option value="">Select folder from dropdown</option>
+                        </select>
+                    </div>
+                    
+                    <div class="folder-search">
+                        <label for="folderSearch">Search Folder:</label>
+                        <input type="text" id="folderSearch" placeholder="Type folder name..." oninput="filterFolders()">
+                    </div>
+                    
+                    <div class="refresh-action">
+                        <button onclick="refreshFileList()" class="btn btn-secondary">🔄 Refresh</button>
+                    </div>
+                </div>
+
+                <!-- Current folder display -->
+                <div id="currentFolderDisplay" class="current-folder">
+                    <strong>Current Folder:</strong> <span id="currentFolderName">/</span>
+                </div>
+
+                <!-- Download selected button -->
+                <div class="bulk-actions">
+                    <button onclick="downloadSelected()" class="btn btn-download" id="downloadSelectedBtn" disabled>
+                        ⬇ Download Selected (<span id="selectedCount">0</span>)
+                    </button>
+                </div>
+
+                <div id="filesList" class="files-list">
+                    <p class="loading">Click refresh to load files...</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
